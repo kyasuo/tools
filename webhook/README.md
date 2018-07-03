@@ -7,7 +7,7 @@ Recieve push/pull_request events from git repository and send messages to IRC se
 
 #### Run
     $ java -jar target/webhook-[VERSION].war 
-      --server.port=[HTTP Server Port(default "8080")] 
+      --server.port=[HTTP Server Port(default "9999")] 
       --irc.server=[IRC Server Host] 
       --irc.port=[IRC Server Port(default "6667")] 
       --irc.name=[IRC Login/NickName(default "webhook")] 

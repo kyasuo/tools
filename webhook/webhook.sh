@@ -5,7 +5,7 @@ JAVA_CMD=java
 WAR_FILE=target/webhook-1.0.0-SNAPSHOT.war
 
 # Server configuration
-SERVER_PORT=1999
+SERVER_PORT=9999
 
 # IRC configuration
 IRC_SERVER=

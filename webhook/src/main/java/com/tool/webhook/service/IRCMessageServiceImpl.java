@@ -7,7 +7,7 @@ import javax.annotation.PreDestroy;
 
 import org.pircbotx.Configuration;
 import org.pircbotx.PircBotX;
-import org.pircbotx.output.OutputIRC;
+import org.pircbotx.output.OutputRaw;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -30,11 +30,11 @@ public class IRCMessageServiceImpl implements MessageService, Runnable {
 	private PircBotX pircBotX = null;
 
 	@Override
-	public void send(Message message) {
-		OutputIRC outputIRC = pircBotX.sendIRC();
-		for (String line : message.getMessageList()) {
-			for (String msg : line.split(REGEX_LINE_SEPARATOR)) {
-				outputIRC.message(channel, msg);
+	public synchronized void send(Message message) {
+		OutputRaw outputRaw = pircBotX.sendRaw();
+		for (String msg : message.getMessageList()) {
+			for (String line : msg.split(REGEX_LINE_SEPARATOR)) {
+				outputRaw.rawLine("PRIVMSG " + channel + " :" + line);
 			}
 		}
 	}
