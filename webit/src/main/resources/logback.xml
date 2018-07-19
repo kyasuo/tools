@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE configuration>
+<configuration>
+
+  <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder>
+      <pattern><![CDATA[date:%d{yyyy-MM-dd HH:mm:ss}\tthread:%thread\tlevel:%-5level\tlogger:%-48logger{48}\tmessage:%msg%n]]></pattern>
+    </encoder>
+  </appender>
+
+  <appender name="FILE" class="ch.qos.logback.core.FileAppender">
+    <file></file>
+    <append>true</append>
+    <encoder>
+      <charset>UTF-8</charset>
+      <pattern><![CDATA[%d{yyyy-MM-dd HH:mm:ss.SSS}\t%-5level\t%-24logger{24}\t%msg%n]]></pattern>
+    </encoder>
+  </appender>
+
+  <logger name="com.tool.it.web.SelenideTestRunner" level="info" additivity="false">
+    <appender-ref ref="FILE" />
+  </logger>
+
+  <root level="warn">
+    <appender-ref ref="STDOUT" />
+    <appender-ref ref="FILE" />
+  </root>
+
+</configuration>
