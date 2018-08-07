@@ -16,7 +16,7 @@ public class JavaParserUtil {
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public static Node getParentExpression(Expression expression, Class cls) {
 		Node parent = expression;
-		while ((parent = parent.getParentNode().get()) != null) {
+		while (parent.getParentNode().isPresent() && (parent = parent.getParentNode().get()) != null) {
 			if (cls.isAssignableFrom(parent.getClass())) {
 				return parent;
 			}
