@@ -83,6 +83,7 @@ public abstract class MigratorBase implements Migrator {
 				final List<String> original = new ArrayList<String>(Arrays.asList(code.split(getLineSeparator())));
 				final List<String> revised = new ArrayList<String>(
 				        Arrays.asList(formatJavaCode(unit.toString()).split(getLineSeparator())));
+				removeEmptyStatement(revised);
 				restoreDeletedComment(original, revised);
 				restoreDeletedLines(original, revised);
 
@@ -128,6 +129,18 @@ public abstract class MigratorBase implements Migrator {
 		return document.get();
 	}
 
+	private static void removeEmptyStatement(List<String> revised) {
+		final Iterator<String> it = revised.iterator();
+		int idx = 0;
+		while (it.hasNext()) {
+			String v = it.next();
+			if (v.matches("^[ \t]*;$")) {
+				revised.set(idx, "");
+			}
+			idx++;
+		}
+	}
+	
 	private static void restoreDeletedComment(List<String> original, List<String> revised) throws DiffException {
 		final List<String> tmpCommentList = new ArrayList<String>();
 		for (String originalLine : original) {

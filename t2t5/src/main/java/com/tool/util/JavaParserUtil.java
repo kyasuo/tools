@@ -10,6 +10,9 @@ import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.FieldDeclaration;
 import com.github.javaparser.ast.body.VariableDeclarator;
 import com.github.javaparser.ast.expr.Expression;
+import com.github.javaparser.ast.stmt.BlockStmt;
+import com.github.javaparser.ast.stmt.ExpressionStmt;
+import com.github.javaparser.ast.stmt.Statement;
 
 public class JavaParserUtil {
 
@@ -25,14 +28,14 @@ public class JavaParserUtil {
 	}
 
 	public static FieldDeclaration addFieldFirst(ClassOrInterfaceDeclaration declaration, String type, String name,
-			Set<Modifier> modifiers) {
+	        Set<Modifier> modifiers) {
 		for (BodyDeclaration<?> member : declaration.getMembers()) {
 			if (!member.isFieldDeclaration()) {
 				continue;
 			}
 			final FieldDeclaration field = member.asFieldDeclaration();
 			if (type.equals(field.getVariable(0).getTypeAsString())
-					&& name.equals(field.getVariable(0).getNameAsString())) {
+			        && name.equals(field.getVariable(0).getNameAsString())) {
 				return field;
 			}
 		}
@@ -44,5 +47,16 @@ public class JavaParserUtil {
 		fieldDeclaration.setJavadocComment(type);
 		declaration.getMembers().addFirst(fieldDeclaration);
 		return fieldDeclaration;
+	}
+
+	public static int findIndexOfCurrentStatement(BlockStmt blogckStatement, ExpressionStmt currentStatement) {
+		int index = 0;
+		for (Statement statement : blogckStatement.getStatements()) {
+			index++;
+			if (statement == currentStatement) {
+				break;
+			}
+		}
+		return index;
 	}
 }
