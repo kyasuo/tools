@@ -10,7 +10,6 @@ import java.util.Map;
 import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.beanutils.expression.DefaultResolver;
 import org.apache.commons.beanutils.expression.Resolver;
-import org.apache.commons.collections.FastHashMap;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.validator.Arg;
 import org.apache.commons.validator.Field;
@@ -80,6 +79,7 @@ public class ValidationAnalyzerImpl implements ValidationAnalyzer {
 				if (resolver.hasNested(property)) {
 					while (resolver.hasNested(property)) {
 						final String name = resolver.next(property);
+						beanClass = findClassIncludingField(beanClass, name);
 						final String beanType = beanClass.getName();
 
 						if (!validationMap.containsKey(beanType)) {
@@ -97,13 +97,19 @@ public class ValidationAnalyzerImpl implements ValidationAnalyzer {
 						property = resolver.remove(property);
 					}
 
+					beanClass = findClassIncludingField(beanClass, property);
 					final String beanType = beanClass.getName();
 					if (!validationMap.containsKey(beanType)) {
 						validationMap.put(beanType, new FormBeanInfo(beanType));
 					}
 					convertDependToAnnotation(validationMap.get(beanType), groupType, property, field);
 				} else {
-					convertDependToAnnotation(formInfo, groupType, property, field);
+					beanClass = findClassIncludingField(beanClass, property);
+					final String beanType = beanClass.getName();
+					if (!validationMap.containsKey(beanType)) {
+						validationMap.put(beanType, new FormBeanInfo(beanType));
+					}
+					convertDependToAnnotation(validationMap.get(beanType), groupType, property, field);
 				}
 			}
 
@@ -111,21 +117,29 @@ public class ValidationAnalyzerImpl implements ValidationAnalyzer {
 
 		return validationMap;
 	}
+	
+	private Class findClassIncludingField(Class target, String fieldName) {
+			java.lang.reflect.Field field = null;
+			Class clazz = target;
+			while(clazz!=null) {
+				try {
+					field = clazz.getDeclaredField(fieldName);
+					break;
+				} catch (NoSuchFieldException e) {
+					clazz = clazz.getSuperclass();
+				}
+			}
+			clazz = field != null ? field.getDeclaringClass() : target;
+			logger.debug("{} -> {} to {}", fieldName, target, clazz);
+			return clazz;
+	}
 
 	@SuppressWarnings("unchecked")
 	private List<Form> getValidationForms(ValidatorResources validationResources) {
 		final List<Form> forms = new ArrayList<Form>();
-		final FastHashMap fFormSets = (FastHashMap) getPrivateField(validationResources, "hFormSets");
-		for (Object formSets : fFormSets.values()) {
-			if (formSets == null) {
-				continue;
-			}
-			for (FormSet formSet : (List<FormSet>) formSets) {
-				if (formSet == null) {
-					continue;
-				}
-				forms.addAll(formSet.getForms().values());
-			}
+		final FormSet formSet = (FormSet) getPrivateField(validationResources, "defaultFormSet");
+		if (formSet != null) {
+			forms.addAll(formSet.getForms().values());
 		}
 		return forms;
 	}
@@ -176,12 +190,12 @@ public class ValidationAnalyzerImpl implements ValidationAnalyzer {
 
 		Msg msg = field.getMessage(depend);
 		if (msg != null) {
-			annotaionInfo.addParam("message", msg.getKey()); // FIXME
+			annotaionInfo.addParam("message", msg.getKey());
 		}
 
 		for (Arg msgArg : field.getArgs(depend)) {
 			if (msgArg != null) {
-				annotaionInfo.addParam("messageArguments", msgArg.getKey()); // FIXME
+				annotaionInfo.addParam("fieldNames", msgArg.getKey());
 			}
 		}
 

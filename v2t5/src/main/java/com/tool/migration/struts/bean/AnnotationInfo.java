@@ -63,7 +63,7 @@ public class AnnotationInfo implements Serializable {
 				if (values.size() == 1) {
 					paramList.add(entry.getKey() + " = " + format(values.iterator().next()));
 				} else {
-					final List<String> valueList = new ArrayList<String>();
+					final List<String> valueList = new ArrayList<String>(); // FIXME use hashset if entry key is groups
 					for (Object value : values) {
 						valueList.add(format(value));
 					}

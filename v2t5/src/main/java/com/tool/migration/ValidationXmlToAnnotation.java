@@ -53,7 +53,6 @@ public class ValidationXmlToAnnotation {
 		                .toArray(new File[] {}),
 		        FileUtils.listFiles(WEBINF_DIR, getValidationFilter(), FileFilterUtils.trueFileFilter())
 		                .toArray(new File[] {}));
-
 		convertFormBean(validationMap);
 	}
 
@@ -91,6 +90,15 @@ public class ValidationXmlToAnnotation {
 					if (annotaionInfo.getGroupType() != null
 					        && !groupTypeSet.contains(annotaionInfo.getGroupType().getType())) {
 						importStatements.add("import " + annotaionInfo.getGroupType().getType() + ";");
+					}
+					if (annotaionInfo.getParams().containsKey("groups")) {
+						final Set<Object> groups = annotaionInfo.getParams().get("groups");
+						for (Object obj : groups) {
+							final GroupType group = (GroupType) obj;
+							if (!groupTypeSet.contains(group.getType())) {
+								importStatements.add("import " + group.getType() + ";");
+							}
+						}
 					}
 				}
 			}
