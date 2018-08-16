@@ -1,7 +1,10 @@
 package com.tool.migration.struts;
 
+import java.beans.IntrospectionException;
+import java.beans.PropertyDescriptor;
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.ParameterizedType;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -117,21 +120,21 @@ public class ValidationAnalyzerImpl implements ValidationAnalyzer {
 
 		return validationMap;
 	}
-	
+
 	private Class findClassIncludingField(Class target, String fieldName) {
-			java.lang.reflect.Field field = null;
-			Class clazz = target;
-			while(clazz!=null) {
-				try {
-					field = clazz.getDeclaredField(fieldName);
-					break;
-				} catch (NoSuchFieldException e) {
-					clazz = clazz.getSuperclass();
-				}
+		java.lang.reflect.Field field = null;
+		Class clazz = target;
+		while (clazz != null) {
+			try {
+				field = clazz.getDeclaredField(fieldName);
+				break;
+			} catch (NoSuchFieldException e) {
+				clazz = clazz.getSuperclass();
 			}
-			clazz = field != null ? field.getDeclaringClass() : target;
-			logger.debug("{} -> {} to {}", fieldName, target, clazz);
-			return clazz;
+		}
+		clazz = field != null ? field.getDeclaringClass() : target;
+		logger.debug("{} -> {} to {}", fieldName, target, clazz);
+		return clazz;
 	}
 
 	@SuppressWarnings("unchecked")
@@ -159,17 +162,28 @@ public class ValidationAnalyzerImpl implements ValidationAnalyzer {
 		if (targetClass == null) {
 			return null;
 		}
-		Class resultClass = targetClass;
 		try {
-			for (String name : StringUtils.split(propertyName, ".")) {
-				if (resultClass == null) {
-					break;
-				}
-				resultClass = PropertyUtils.getPropertyType(resultClass.newInstance(), name);
+			final PropertyDescriptor descriptor = new PropertyDescriptor(propertyName, targetClass);
+			java.lang.reflect.Type propertyType = null;
+			if (descriptor.getReadMethod() != null) {
+				propertyType = descriptor.getReadMethod().getGenericReturnType();
 			}
-			return resultClass;
-		} catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException
-		        | InstantiationException e) {
+			if (propertyType == null && descriptor.getWriteMethod() != null) {
+				propertyType = descriptor.getWriteMethod().getGenericParameterTypes()[0];
+			}
+			if (propertyType != null) {
+				final String propertyTypeName = propertyType.getTypeName();
+				if (propertyTypeName.startsWith(java.util.List.class.getTypeName())
+				        || propertyTypeName.startsWith(java.util.Set.class.getTypeName())) {
+					return Class.forName(((ParameterizedType) propertyType).getActualTypeArguments()[0].getTypeName());
+				} else {
+					return Class.forName(propertyTypeName);
+				}
+			} else {
+				return PropertyUtils.getPropertyType(targetClass.newInstance(), propertyName);
+			}
+		} catch (IntrospectionException | ClassNotFoundException | IllegalAccessException | InvocationTargetException
+		        | NoSuchMethodException | InstantiationException e) {
 			throw new RuntimeException(e);
 		}
 	}
