@@ -94,6 +94,7 @@ public class ValidationAnalyzerImpl implements ValidationAnalyzer {
 							beanInfo.addProperty(name, new PropertyInfo(name));
 						}
 						final PropertyInfo propertyInfo = beanInfo.getPropertyMap().get(name);
+						propertyInfo.addAnnotaion(new AnnotationInfo(javax.validation.constraints.NotNull.class.getName(), new GroupType(groupType)));
 						propertyInfo.addAnnotaion(new AnnotationInfo(javax.validation.Valid.class.getName(), null));
 
 						beanClass = findPropertyType(ClassUtil.getClassIgnoreException(beanType), name);
